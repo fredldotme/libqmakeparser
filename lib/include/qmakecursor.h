@@ -2,6 +2,7 @@
 #define QMAKECURSOR
 
 #include <QObject>
+#include <QDebug>
 #include <functional>
 
 struct QMakeCursorPos {
@@ -13,34 +14,43 @@ public:
 		this->m_content = content;
 	};
 
-	QMakeCursorPos operator++(int i)
+	QMakeCursorPos& operator++()
 	{
-		QMakeCursorPos newPos(this->m_content);
-		newPos.m_readPos = this->m_readPos;
-
 		// Handle EOF
-		if ((newPos.m_readPos + i) > newPos.m_content.length())
-			return newPos;
+		if ((this->m_readPos + 1) > this->m_content.length())
+			return *this;
 
-		const QChar nextChar = this->m_content.at(++newPos.m_readPos);
+		const QChar nextChar = this->m_content.at(++this->m_readPos);
 		if (nextChar == QChar('\n')) {
-			newPos.y += i;
-			newPos.x = 0;
+			++this->y;
+			this->x = 0;
 		} else {
-			newPos.x += i;
+			++this->x;
 		}
 
-		newPos.currentChar = nextChar;
-		newPos.m_readPos += i;
+		this->currentChar = nextChar;
+		return *this;
+	}
+
+	QMakeCursorPos operator++(int)
+	{
+		QMakeCursorPos newPos(*this);
+		++(*this);
 		return newPos;
 	}
 
-	bool operator!=(const QMakeCursorPos& o)
+	bool operator==(const QMakeCursorPos& o)
 	{
 		return this->x == o.x &&
 				this->y == o.y &&
 				this->m_content == o.m_content &&
-				this->m_readPos == o.m_readPos;
+				this->m_readPos == o.m_readPos &&
+				this->currentChar == o.currentChar;
+	}
+
+	bool operator!=(const QMakeCursorPos& o)
+	{
+		return !(*this == o);
 	}
 
 	qint64 x = -1;

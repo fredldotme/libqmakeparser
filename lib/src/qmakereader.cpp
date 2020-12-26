@@ -7,7 +7,7 @@
 
 QMakeReader::QMakeReader(QObject* parent) : QObject(parent)
 {
-	
+
 }
 
 bool QMakeReader::loadFile(const QString& filePath)

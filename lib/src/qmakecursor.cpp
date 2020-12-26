@@ -24,7 +24,8 @@ void QMakeCursor::process()
 
 bool QMakeCursor::proceed()
 {
-	const bool hasRead = (*this->m_currentPos != (*this->m_currentPos)++);
+	QMakeCursorPos prevPos = (*this->m_currentPos);
+	const bool hasRead = prevPos != ++(*this->m_currentPos);
 
 	if (hasRead) {
 		Q_EMIT proceeded(*this->m_currentPos);

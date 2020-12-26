@@ -1,0 +1,19 @@
+#ifndef QMAKETYPES
+#define QMAKETYPES
+
+enum QMakeProjectType {
+	TYPE_UNKNOWN = 0,
+	TYPE_APP,
+	TYPE_LIB,
+	TYPE_SUBDIRS,
+	TYPE_AUX
+};
+
+enum QMakeParseError {
+	UNKNOWN = 0,
+	ERROR_FILE_NOT_PROVIDED,
+	ERROR_FILE_NOT_FOUND,
+	ERROR_FILE_LOAD_FAILED
+};
+
+#endif

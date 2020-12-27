@@ -62,6 +62,11 @@ public:
 		return x >= 0 && y >= 0;
 	}
 
+	bool isEOF()
+	{
+		return this->m_readPos >= this->m_content.length();
+	}
+
 private:
 	QString m_content = QByteArrayLiteral("");
 	qint64 m_readPos = -1;
@@ -74,7 +79,7 @@ public:
 	QMakeCursor(QObject* parent = nullptr, const QString& content = QStringLiteral(""));
 	~QMakeCursor();
 
-	std::function<bool(ushort)> handleCharacter;
+	std::function<bool(QMakeCursorPos*)> handleCharacter;
 	void process();
 
 private:

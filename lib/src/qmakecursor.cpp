@@ -17,7 +17,7 @@ void QMakeCursor::process()
 {
 	while (proceed())
 	{
-		this->handleCharacter(this->m_currentPos->currentChar.unicode());
+		this->handleCharacter(this->m_currentPos);
 	}
 	return;
 }

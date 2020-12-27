@@ -5,6 +5,8 @@
 
 #include <vector>
 
+#include "qmakecursor.h"
+
 class QMakeReader : public QObject {
 	Q_OBJECT
 
@@ -13,7 +15,7 @@ public:
 	bool loadFile(const QString& filePath);
 
 private:
-	bool handleCharacter(ushort character);
+	bool handleCharacter(QMakeCursorPos*);
 	void processWordBuffer();
 	void processLogicalLine();
 

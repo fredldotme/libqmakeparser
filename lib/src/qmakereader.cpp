@@ -47,11 +47,11 @@ void QMakeReader::processLogicalLine()
 	}
 }
 
-bool QMakeReader::handleCharacter(ushort character)
+bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 {
 	// cout << (char)character;
 
-	QChar qChar = QChar(character);
+	QChar qChar = QChar(pos->currentChar.unicode());
 
 	if (qChar.isLetter() || qChar.isNumber()) {
 		this->m_wordBuffer += qChar;
@@ -59,7 +59,7 @@ bool QMakeReader::handleCharacter(ushort character)
 		// Silently skip tabs
 	} else if (qChar == QChar('\\') || qChar == QChar(' ')) {
 		processWordBuffer();
-	} else if (qChar == QChar('\n')) {
+	} else if (qChar == QChar('\n') || pos->isEOF()) {
 		processLogicalLine();
 	}
 

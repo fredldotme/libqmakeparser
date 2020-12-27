@@ -41,6 +41,7 @@ void QMakeReader::processWordBuffer()
 
 void QMakeReader::processLogicalLine()
 {
+	processWordBuffer();
 	for (const QString& word : this->m_logicalLine) {
 		cout << word.toStdString() << endl;
 	}
@@ -56,7 +57,7 @@ bool QMakeReader::handleCharacter(ushort character)
 		this->m_wordBuffer += qChar;
 	} else if (qChar == QChar('\t')) {
 		// Silently skip tabs
-	} else if (qChar == QChar('\\') || qChar(' ')) {
+	} else if (qChar == QChar('\\') || qChar == QChar(' ')) {
 		processWordBuffer();
 	} else if (qChar == QChar('\n')) {
 		processLogicalLine();

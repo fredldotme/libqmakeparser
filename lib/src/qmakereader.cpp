@@ -33,22 +33,33 @@ bool QMakeReader::loadFile(const QString& filePath)
 void QMakeReader::processWordBuffer()
 {
 	this->m_wordBuffer = this->m_wordBuffer.trimmed();
-	cout << this->m_wordBuffer.toStdString() << endl;
+	// cout << this->m_wordBuffer.toStdString() << endl;
 	this->m_lastWord = this->m_wordBuffer;
+	this->m_logicalLine.push_back(this->m_lastWord);
 	this->m_wordBuffer.clear();
+}
+
+void QMakeReader::processLogicalLine()
+{
+	for (const QString& word : this->m_logicalLine) {
+		cout << word.toStdString() << endl;
+	}
 }
 
 bool QMakeReader::handleCharacter(ushort character)
 {
-	cout << (char)character;
+	// cout << (char)character;
 
 	QChar qChar = QChar(character);
+
 	if (qChar.isLetter() || qChar.isNumber()) {
-		m_wordBuffer += qChar;
-	} else if (qChar == QChar(' ') || qChar == QChar('\t')) {
-		// Silently skip tabs and spaces
-	} else {
+		this->m_wordBuffer += qChar;
+	} else if (qChar == QChar('\t')) {
+		// Silently skip tabs
+	} else if (qChar == QChar('\\') || qChar(' ')) {
 		processWordBuffer();
+	} else if (qChar == QChar('\n')) {
+		processLogicalLine();
 	}
 
 	return true;

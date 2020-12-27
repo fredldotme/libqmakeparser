@@ -74,7 +74,7 @@ public:
 	QMakeCursor(QObject* parent = nullptr, const QString& content = QStringLiteral(""));
 	~QMakeCursor();
 
-	std::function<void(ushort)> handleCharacter;
+	std::function<bool(ushort)> handleCharacter;
 	void process();
 
 private:

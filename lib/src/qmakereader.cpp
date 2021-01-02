@@ -2,6 +2,7 @@
 #include <qmakecursor.h>
 
 #include <QFile>
+#include <QSysInfo>
 
 #include <iostream>
 
@@ -41,6 +42,27 @@ void QMakeReader::processWordBuffer()
 	this->m_wordBuffer.clear();
 }
 
+bool QMakeReader::hasOsSpecifier(const QString& value)
+{
+	return value.contains("unix") || value.contains("linux") ||
+		value.contains("macx") || value.contains("windows") ||
+		value.contains("android") || value.contains("ios");
+}
+
+bool QMakeReader::isRequestedOs(const QString& value)
+{
+	if (!value.contains(':'))
+		return (QSysInfo::productType() == value || QSysInfo::kernelType() == value);
+
+	const QStringList values = value.split(':');
+	for (const QString& assignedValue : values) {
+		if (QSysInfo::productType() == assignedValue || QSysInfo::kernelType() == assignedValue)
+			return true;
+	}
+
+	return false;
+}
+
 void QMakeReader::processLogicalLine()
 {
 	processWordBuffer();
@@ -66,9 +88,14 @@ void QMakeReader::processLogicalLine()
 		const QString& word = this->m_currentBlock->logicalLine[i];
 
 		if (i == 0) {
-			// We only care about the first word after determining
-			// which type of line this actually is.
-			continue;
+			// We only care about the first word in case it's an OS-specific block
+			if (hasOsSpecifier(word)) {
+				if (!isRequestedOs(word)) {
+					break;
+				} else {
+					continue;
+				}
+			}
 		}
 		else if (i == 1) {
 			if (word == QString("=")) {
@@ -134,7 +161,7 @@ bool QMakeReader::hasListValue()
 	}
 
 	const QString& listName = this->m_currentBlock->logicalLine[1];
-	const QString& valName = this->m_currentBlock->logicalLine[1];
+	const QString& valName = this->m_currentBlock->logicalLine[2];
 
 	if (this->m_variables.find(listName) != this->m_variables.end()) {
 		const QMakeVariable& variable = this->m_variables[listName];

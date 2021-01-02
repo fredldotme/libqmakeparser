@@ -24,7 +24,4 @@ struct QMakeOptionalBlock : public QMakeBlock {
 	bool enabled = true;
 };
 
-struct QMakeOSOptionalBlock : public QMakeOptionalBlock {
-};
-
 #endif

@@ -27,6 +27,8 @@ private:
 	void processLogicalLine();
 	bool isListContains();
 	bool hasListValue();
+	bool hasOsSpecifier(const QString& value);
+	bool isRequestedOs(const QString& value);
 
 	QMakeCursorMode m_mode = QMakeCursorMode::MODE_NORMAL;
 	bool m_continueLine = false;

@@ -36,7 +36,7 @@ void QMakeReader::processWordBuffer()
 	// cout << this->m_wordBuffer.toStdString() << endl;
 	if (!this->m_wordBuffer.isEmpty()) {
 		this->m_lastWord = this->m_wordBuffer;
-		this->m_logicalLine.push_back(this->m_lastWord);	
+		this->m_currentBlock->logicalLine.push_back(this->m_lastWord);	
 	}
 	this->m_wordBuffer.clear();
 }
@@ -46,7 +46,7 @@ void QMakeReader::processLogicalLine()
 	processWordBuffer();
 
 	bool isEmpty = true;
-	for (const QString& word : this->m_logicalLine) {
+	for (const QString& word : this->m_currentBlock->logicalLine) {
 		if (!word.trimmed().isEmpty()) {
 			isEmpty = false;
 			break;
@@ -54,15 +54,16 @@ void QMakeReader::processLogicalLine()
 	}
 
 	if (isEmpty) {
-		this->m_logicalLine.clear();
+		this->m_currentBlock->logicalLine.clear();
 		return;
 	}
 
 	QMakeKeyword keyword = QMakeKeyword::KEYWORD_NONE;
 
+	cout << "Block address:" << this->m_currentBlock.get() << endl;
 	cout << "Logical line begin:" << endl;
-	for (int i = 0; i < this->m_logicalLine.size(); i++) {
-		const QString& word = this->m_logicalLine[i];
+	for (int i = 0; i < this->m_currentBlock->logicalLine.size(); i++) {
+		const QString& word = this->m_currentBlock->logicalLine[i];
 
 		if (i == 0) {
 			if (word == QString("TEMPLATE")) {
@@ -85,7 +86,7 @@ void QMakeReader::processLogicalLine()
 	}
 	cout << "Logical line end" << endl;
 
-	this->m_logicalLine.clear();
+	this->m_currentBlock->logicalLine.clear();
 }
 
 bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
@@ -94,7 +95,24 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 
 	QChar qChar = QChar(pos->currentChar.unicode());
 
-	if (qChar == QChar('\t')) {
+	// cout << "x=" << pos->x << " y=" << pos->y << " char=" << qChar.toLatin1() << endl;
+
+	if (pos->x == 0 && pos->y == 0) {
+		this->m_rootBlock = std::make_shared<QMakeBlock>();
+		this->m_currentBlock = this->m_rootBlock;
+	}
+
+	if (qChar == QChar('{')) {
+		std::shared_ptr<QMakeBlock> newBlock = std::make_shared<QMakeBlock>();
+		newBlock->parent = this->m_currentBlock;
+		this->m_currentBlock->subBlocks.push_back(newBlock);
+		this->m_currentBlock = this->m_currentBlock->subBlocks.back();
+	}
+	else if (qChar == QChar('}')) {
+		processLogicalLine();
+		this->m_currentBlock = this->m_currentBlock->parent;
+	}
+	else if (qChar == QChar('\t')) {
 		// Silently skip tabs
 	}
 	else if (qChar == QChar('\\')) {
@@ -104,6 +122,9 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 		processWordBuffer();
 	}
 	else if (qChar == QChar('\n') || pos->isEOF()) {
+		if (this->m_mode != QMakeCursorMode::MODE_BLIND)
+			this->m_wordBuffer += qChar;
+
 		if (!this->m_continueLine)
 			processLogicalLine();
 

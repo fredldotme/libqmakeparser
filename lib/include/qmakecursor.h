@@ -2,7 +2,6 @@
 #define QMAKECURSOR
 
 #include <QObject>
-#include <QDebug>
 #include <functional>
 
 struct QMakeCursorPos {
@@ -12,16 +11,19 @@ public:
 	QMakeCursorPos(const QString& content)
 	{
 		this->m_content = content;
-	};
+	}
 
 	QMakeCursorPos& operator++()
 	{
 		// Handle EOF
-		if ((this->m_readPos + 1) > this->m_content.length())
+		if ((this->m_readPos + 1) >= this->m_content.length())
 			return *this;
 
 		const QChar nextChar = this->m_content.at(++this->m_readPos);
-		if (nextChar == QChar('\n')) {
+		if (this->x == -1 && this->y == -1) {
+			this->x = 0;
+			this->y = 0;
+		} else if (nextChar == QChar('\n')) {
 			++this->y;
 			this->x = 0;
 		} else {
@@ -64,7 +66,7 @@ public:
 
 	bool isEOF()
 	{
-		return this->m_readPos >= this->m_content.length();
+		return this->m_readPos >= this->m_content.length() - 1;
 	}
 
 private:

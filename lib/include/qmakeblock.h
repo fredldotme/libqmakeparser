@@ -1,3 +1,6 @@
+#ifndef QMAKEBLOCK
+#define QMAKEBLOCK
+
 #include <QString>
 
 #include <memory>
@@ -9,3 +12,5 @@ struct QMakeBlock {
 
 	std::vector<QString> logicalLine;
 };
+
+#endif

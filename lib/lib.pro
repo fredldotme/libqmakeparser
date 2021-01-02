@@ -16,5 +16,5 @@ HEADERS += \
 	$$PWD/include/qmakeparser.h \
 	$$PWD/include/qmakereader.h \
 	$$PWD/include/qmakecursor.h \
-	$$PWD/include/qmaketree.h \
+	$$PWD/include/qmakevariable.h \
 	$$PWD/include/qmaketypes.h

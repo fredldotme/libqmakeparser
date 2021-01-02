@@ -5,9 +5,12 @@
 #include <QString>
 
 #include <vector>
+#include <map>
+#include <memory>
 
 #include "qmaketypes.h"
 #include "qmakereader.h"
+#include "qmakeblock.h"
 
 class QMakeParser : public QObject {
 	Q_OBJECT
@@ -16,7 +19,8 @@ public:
 	QMakeParser(QObject* parent = nullptr);
 
 	void setProjectFile(QString filePath);
-	
+	std::map<QString, QMakeVariable> getVariables();
+
 private:
 	void parseProject();
 
@@ -24,12 +28,6 @@ private:
 
 	QString m_filePath;
 	std::vector<QMakeParser*> m_subdirs;
-	std::vector<QString> m_pris;
-	std::vector<QString> m_configs;
-	std::vector<QString> m_includePaths;
-	std::vector<QString> m_sources;
-	std::vector<QString> m_headers;
-	std::vector<QString> m_defines;
 
 Q_SIGNALS:
 	void filePathChanged();

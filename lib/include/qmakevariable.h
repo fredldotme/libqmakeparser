@@ -3,19 +3,10 @@
 
 #include <QString>
 
-#include "qmakevariable.h"
-
-struct QMakeVariableVal {
-	
-};
-
-struct QMakeVariableListVal : public QMakeVariableVal {
-	
-};
+#include "qmaketypes.h"
 
 struct QMakeVariable {
-	QMakeVariableType type;
-	QMakeVariableVal value;
+	std::vector<QString> values;
 };
 
 #endif

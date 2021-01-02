@@ -58,35 +58,93 @@ void QMakeReader::processLogicalLine()
 		return;
 	}
 
-	QMakeKeyword keyword = QMakeKeyword::KEYWORD_NONE;
+	QMakeLineType lineType = QMakeLineType::LINETYPE_NONE;
 
-	cout << "Block address:" << this->m_currentBlock.get() << endl;
-	cout << "Logical line begin:" << endl;
+	// cout << "Block address:" << this->m_currentBlock.get() << endl;
+	// cout << "Logical line begin:" << endl;
 	for (int i = 0; i < this->m_currentBlock->logicalLine.size(); i++) {
 		const QString& word = this->m_currentBlock->logicalLine[i];
 
 		if (i == 0) {
-			if (word == QString("TEMPLATE")) {
-				keyword = QMakeKeyword::KEYWORD_TEMPLATE;
-			} else if (word == QString("TARGET")) {
-				keyword = QMakeKeyword::KEYWORD_TARGET;
-			} else if (word == QString("SOURCES")) {
-				keyword = QMakeKeyword::KEYWORD_SOURCES;
-			} else if (word == QString("HEADERS")) {
-				keyword = QMakeKeyword::KEYWORD_HEADERS;
-			} else if (word == QString("INCLUDEPATH")) {
-				keyword = QMakeKeyword::KEYWORD_INCLUDEPATH;
-			} else if (word == QString("CONFIG")) {
-				keyword = QMakeKeyword::KEYWORD_CONFIG;
-			} else if (word == QString("SUBDIRS")) {
-				keyword = QMakeKeyword::KEYWORD_SUBDIRS;
+			// We only care about the first word after determining
+			// which type of line this actually is.
+			continue;
+		}
+		else if (i == 1) {
+			if (word == QString("=")) {
+				lineType = QMakeLineType::LINETYPE_VARIABLE_ASSIGNMENT;
+				// Clear existing values from the variable in question
+				const QString& key = this->m_currentBlock->logicalLine[0];
+				this->m_variables[key].values.clear();
+			}
+			else if (word == QString("+=")) {
+				lineType = QMakeLineType::LINETYPE_VARIABLE_ADDITION;
+			}
+			else if (word == QString("-=")) {
+				lineType = QMakeLineType::LINETYPE_VARIABLE_SUBTRACTION;
 			}
 		}
-		cout << word.toStdString() << endl;
+		else if (lineType != QMakeLineType::LINETYPE_NONE) {
+			const QString& key = this->m_currentBlock->logicalLine[0];
+			QMakeVariable& var = this->m_variables[key];
+
+			switch (lineType) {
+			case QMakeLineType::LINETYPE_VARIABLE_ADDITION:
+			case QMakeLineType::LINETYPE_VARIABLE_ASSIGNMENT:
+				var.values.push_back(this->m_currentBlock->logicalLine[i]);
+				break;
+			case QMakeLineType::LINETYPE_VARIABLE_SUBTRACTION:
+				for (auto it = var.values.begin(); it != var.values.end();) {
+					if (*it == this->m_currentBlock->logicalLine[i]) {
+						it = var.values.erase(it);
+					} else {
+						++it;
+					}
+				}
+				break;
+			}
+		}
+		// cout << word.toStdString() << endl;
 	}
-	cout << "Logical line end" << endl;
+	// cout << "Logical line end" << endl;
 
 	this->m_currentBlock->logicalLine.clear();
+}
+
+// Read the processed wordBuffer and find out whether
+// the current read is a contains(<LISTNAME>, <VALUE>) {}
+bool QMakeReader::isListContains()
+{
+	if (this->m_currentBlock->logicalLine.size() <= 0) {
+		return false;
+	}
+
+	const QString& logicalLineStart = this->m_currentBlock->logicalLine[0];
+	if (logicalLineStart.startsWith(QStringLiteral("contains"))) {
+		return true;
+	}
+
+	return false;
+}
+
+bool QMakeReader::hasListValue()
+{
+	if (this->m_currentBlock->logicalLine.size() <= 2) {
+		return false;
+	}
+
+	const QString& listName = this->m_currentBlock->logicalLine[1];
+	const QString& valName = this->m_currentBlock->logicalLine[1];
+
+	if (this->m_variables.find(listName) != this->m_variables.end()) {
+		const QMakeVariable& variable = this->m_variables[listName];
+		for (auto value : variable.values) {
+			if (value == valName)
+				return true;
+		}
+	}
+
+	return false;
 }
 
 bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
@@ -103,7 +161,16 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 	}
 
 	if (qChar == QChar('{')) {
-		std::shared_ptr<QMakeBlock> newBlock = std::make_shared<QMakeBlock>();
+		// Process word buffer now so that we can properly
+		// enable or disable optional blocks
+		processLogicalLine();
+
+		std::shared_ptr<QMakeBlock> newBlock;
+		if (isListContains())
+			newBlock = std::make_shared<QMakeOptionalBlock>(hasListValue());
+		else
+			newBlock = std::make_shared<QMakeBlock>();
+
 		newBlock->parent = this->m_currentBlock;
 		this->m_currentBlock->subBlocks.push_back(newBlock);
 		this->m_currentBlock = this->m_currentBlock->subBlocks.back();
@@ -114,6 +181,13 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 	}
 	else if (qChar == QChar('\t')) {
 		// Silently skip tabs
+	}
+	else if (qChar == QChar('(') || qChar == QChar(')')) {
+		// Silently skip brackets, but process the word
+		processWordBuffer();
+	}
+	else if (qChar == QChar(',')) {
+		// Silently skip commas
 	}
 	else if (qChar == QChar('\\')) {
 		this->m_continueLine = true;
@@ -136,6 +210,17 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 	}
 	else if (this->m_mode != QMakeCursorMode::MODE_BLIND) {
 		this->m_wordBuffer += qChar;
+	}
+	else if (this->m_currentBlock != this->m_rootBlock) {
+		cout << "Failed to close root block at " << pos->x << "x" << pos->y << endl;
+		return false;
+	}
+	else if (this->m_mode == QMakeCursorMode::MODE_BLIND) {
+		// Silently skip in blind mode (reading comment)
+	}
+	else {
+		cout << "Failed to read at pos " << pos->x << "x" << pos->y << endl;
+		return false;
 	}
 
 	return true;

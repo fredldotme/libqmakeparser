@@ -2,6 +2,8 @@
 
 #include <QFile>
 
+using namespace std;
+
 QMakeParser::QMakeParser(QObject* parent) : QObject(parent)
 {
 	QObject::connect(this, &QMakeParser::filePathChanged,
@@ -34,4 +36,9 @@ void QMakeParser::parseProject()
 		Q_EMIT parseError(QMakeParseError::ERROR_FILE_LOAD_FAILED);
 		return;
 	}
+}
+
+map<QString, QMakeVariable> QMakeParser::getVariables()
+{
+	return this->m_reader.getVariables();
 }

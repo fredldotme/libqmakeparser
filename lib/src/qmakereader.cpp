@@ -43,7 +43,7 @@ bool QMakeReader::loadFile(const QString& filePath)
 
 void QMakeReader::feedValues(const QString& value)
 {
-	const std::vector<QString> valueLine = value.split(' ').toStdVector();
+	const std::vector<QString> valueLine = value.split(' ').toVector().toStdVector();
 	processLogicalLine(valueLine);
 }
 

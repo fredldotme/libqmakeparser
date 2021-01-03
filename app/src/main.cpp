@@ -13,6 +13,13 @@ int main(int argc, char** argv)
 	QMakeParser parser(nullptr);
 	parser.setProjectFile(QString::fromUtf8(argv[1], strlen(argv[1])));
 
+	if (argc > 2) {
+		for (int i = 2; i < argc; i++) {
+			const QString arg = QString::fromUtf8(argv[i], strlen(argv[i]));
+			parser.feedValues(arg);
+		}
+	}
+
 	map<QString, QMakeVariable> variables = parser.getVariables();
 	for (auto keyValPair : variables) {
 		cout << "KEY: " << keyValPair.first.toStdString() << endl;

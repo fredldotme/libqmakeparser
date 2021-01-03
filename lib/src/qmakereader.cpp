@@ -170,7 +170,7 @@ void QMakeReader::processLogicalLine(const std::vector<QString>& line)
 			}
 		}
 		else if (lineType != QMakeLineType::LINETYPE_NONE) {
-			const QString& key = this->line[0];
+			const QString& key = line[0];
 			QMakeVariable& var = this->m_variables[key];
 
 			switch (lineType) {

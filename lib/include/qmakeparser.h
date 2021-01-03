@@ -19,7 +19,7 @@ public:
 	QMakeParser(QObject* parent = nullptr);
 
 	void setProjectFile(const QString& filePath);
-	void feedValues(const QStringList& values)
+	void feedValues(const QStringList& values);
 	std::map<QString, QMakeVariable> getVariables();
 
 private:

@@ -82,7 +82,7 @@ public:
 	~QMakeCursor();
 
 	std::function<bool(QMakeCursorPos*)> handleCharacter;
-	void process();
+	bool process();
 
 private:
 	bool proceed();

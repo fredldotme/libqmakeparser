@@ -22,6 +22,8 @@ public:
 	}
 
 private:
+	bool checkBracketCount();
+	bool bracketChecker(QMakeCursorPos*);
 	bool handleCharacter(QMakeCursorPos*);
 	void processWordBuffer();
 	void processLogicalLine();
@@ -36,6 +38,11 @@ private:
 	QString m_lastWord;
 	std::shared_ptr<QMakeBlock> m_rootBlock;
 	std::shared_ptr<QMakeBlock> m_currentBlock;
+
+	quint64 m_openBrackets = 0;
+	quint64 m_closedBrackets = 0;
+	quint64 m_openCurlyBrackets = 0;
+	quint64 m_closedCurlyBrackets = 0;
 
 	std::map<QString, QMakeVariable> m_variables;
 };

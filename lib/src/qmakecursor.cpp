@@ -13,13 +13,14 @@ QMakeCursor::~QMakeCursor()
 	}
 }
 
-void QMakeCursor::process()
+bool QMakeCursor::process()
 {
 	while (proceed())
 	{
-		this->handleCharacter(this->m_currentPos);
+		if (!this->handleCharacter(this->m_currentPos))
+			return false;
 	}
-	return;
+	return true;
 }
 
 bool QMakeCursor::proceed()

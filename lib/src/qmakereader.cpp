@@ -23,11 +23,61 @@ bool QMakeReader::loadFile(const QString& filePath)
 
 	const QString content = QString::fromUtf8(file.readAll());
 
+	// First pass: check for brackets and curly brackets
+	QMakeCursor bracketCheckCursor(nullptr, content);
+	bracketCheckCursor.handleCharacter = std::bind(&QMakeReader::bracketChecker, this,
+		std::placeholders::_1);
+	const bool bracketCheckSuccess = bracketCheckCursor.process();
+	if (!bracketCheckSuccess)
+		return false;
+
+	// Pass two: parse the contents
 	QMakeCursor cursor(nullptr, content);
-
 	cursor.handleCharacter = std::bind(&QMakeReader::handleCharacter, this, std::placeholders::_1);
+	const bool parseSuccess = cursor.process();
+	if (!parseSuccess)
+		return false;
+	return true;
+}
 
-	cursor.process();
+bool QMakeReader::checkBracketCount()
+{
+	if (this->m_openBrackets != this->m_closedBrackets) {
+		cerr << "Bracket mismatch" << endl;
+		return false;
+	}
+	if (this->m_openCurlyBrackets != this->m_closedCurlyBrackets) {
+		cerr << "Curly bracket mismatch" << endl;
+		return false;
+	}
+	return true;
+}
+
+bool QMakeReader::bracketChecker(QMakeCursorPos* pos)
+{
+	QChar qChar = QChar(pos->currentChar.unicode());
+
+	if (pos->isEOF()) {
+		if (!checkBracketCount())
+			return false;
+	}
+	else if (qChar == QChar('(')) {
+		++this->m_openBrackets;
+	}
+	else if (qChar == QChar(')')) {
+		++this->m_closedBrackets;
+		if (!checkBracketCount())
+			return false;
+	}
+	else if (qChar == QChar('{')) {
+		++this->m_openCurlyBrackets;
+	}
+	else if (qChar == QChar('}')) {
+		++this->m_closedCurlyBrackets;
+		if (!checkBracketCount())
+			return false;
+	}
+
 	return true;
 }
 
@@ -68,10 +118,12 @@ void QMakeReader::processLogicalLine()
 	processWordBuffer();
 
 	bool isEmpty = true;
-	for (const QString& word : this->m_currentBlock->logicalLine) {
-		if (!word.trimmed().isEmpty()) {
-			isEmpty = false;
-			break;
+	if (this->m_currentBlock->logicalLine.size() > 0) {
+		for (const QString& word : this->m_currentBlock->logicalLine) {
+			if (!word.trimmed().isEmpty()) {
+				isEmpty = false;
+				break;
+			}
 		}
 	}
 

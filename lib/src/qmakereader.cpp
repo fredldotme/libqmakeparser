@@ -66,16 +66,12 @@ bool QMakeReader::bracketChecker(QMakeCursorPos* pos)
 	}
 	else if (qChar == QChar(')')) {
 		++this->m_closedBrackets;
-		if (!checkBracketCount())
-			return false;
 	}
 	else if (qChar == QChar('{')) {
 		++this->m_openCurlyBrackets;
 	}
 	else if (qChar == QChar('}')) {
 		++this->m_closedCurlyBrackets;
-		if (!checkBracketCount())
-			return false;
 	}
 
 	return true;

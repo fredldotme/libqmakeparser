@@ -37,6 +37,7 @@ bool QMakeReader::loadFile(const QString& filePath)
 	const bool parseSuccess = cursor.process();
 	if (!parseSuccess)
 		return false;
+
 	return true;
 }
 
@@ -114,12 +115,10 @@ void QMakeReader::processLogicalLine()
 	processWordBuffer();
 
 	bool isEmpty = true;
-	if (this->m_currentBlock->logicalLine.size() > 0) {
-		for (const QString& word : this->m_currentBlock->logicalLine) {
-			if (!word.trimmed().isEmpty()) {
-				isEmpty = false;
-				break;
-			}
+	for (const QString& word : this->m_currentBlock->logicalLine) {
+		if (!word.trimmed().isEmpty()) {
+			isEmpty = false;
+			break;
 		}
 	}
 
@@ -182,8 +181,6 @@ void QMakeReader::processLogicalLine()
 		// cout << word.toStdString() << endl;
 	}
 	// cout << "Logical line end" << endl;
-
-	this->m_currentBlock->logicalLine.clear();
 }
 
 // Read the processed wordBuffer and find out whether
@@ -195,7 +192,8 @@ bool QMakeReader::isListContains()
 	}
 
 	const QString& logicalLineStart = this->m_currentBlock->logicalLine[0];
-	if (logicalLineStart.startsWith(QStringLiteral("contains"))) {
+	if (logicalLineStart == QStringLiteral("contains")) {
+		// cout << "is contains" << endl;
 		return true;
 	}
 
@@ -210,6 +208,7 @@ bool QMakeReader::hasListValue()
 
 	const QString& listName = this->m_currentBlock->logicalLine[1];
 	const QString& valName = this->m_currentBlock->logicalLine[2];
+	// cout << "listName: " << listName.toStdString() << " valName: " << valName.toStdString() << endl;
 
 	if (this->m_variables.find(listName) != this->m_variables.end()) {
 		const QMakeVariable& variable = this->m_variables[listName];
@@ -278,8 +277,11 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 		if (this->m_mode != QMakeCursorMode::MODE_BLIND)
 			this->m_wordBuffer += qChar;
 
-		if (!this->m_continueLine)
+		if (!this->m_continueLine) {
 			processLogicalLine();
+			// Discard processed data after a logical line is done
+			this->m_currentBlock->logicalLine.clear();
+		}
 
 		this->m_continueLine = false;
 		this->m_mode = QMakeCursorMode::MODE_NORMAL;
@@ -288,13 +290,14 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 		this->m_mode = QMakeCursorMode::MODE_BLIND;
 	}
 	else if (this->m_mode != QMakeCursorMode::MODE_BLIND) {
-		this->m_wordBuffer += qChar;
+		if (this->m_currentBlock->enabled)
+			this->m_wordBuffer += qChar;
 	}
 	else if (this->m_mode == QMakeCursorMode::MODE_BLIND) {
 		// Silently skip in blind mode (reading comment)
 	}
 	else {
-		cout << "Failed to read at pos " << pos->x << "x" << pos->y << endl;
+		cerr << "Failed to read at pos " << pos->x << "x" << pos->y << endl;
 		return false;
 	}
 

@@ -15,13 +15,13 @@ struct QMakeBlock {
 
 	// Should be friend for QMakeReader
 	std::vector<QString> logicalLine;
+	bool enabled = true;
 };
 
 struct QMakeOptionalBlock : public QMakeBlock {
 	QMakeOptionalBlock(bool enabled) : QMakeBlock() {
 		this->enabled = enabled;
 	}
-	bool enabled = true;
 };
 
 #endif

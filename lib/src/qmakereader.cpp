@@ -223,6 +223,10 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 		processWordBuffer();
 	}
 	else if (qChar == QChar('\n') || pos->isEOF()) {
+		if (pos->isEOF() && this->m_currentBlock != this->m_rootBlock) {
+			cout << "Failed to close root block at " << pos->x << "x" << pos->y << endl;
+			return false;
+		}
 		if (this->m_mode != QMakeCursorMode::MODE_BLIND)
 			this->m_wordBuffer += qChar;
 
@@ -237,10 +241,6 @@ bool QMakeReader::handleCharacter(QMakeCursorPos* pos)
 	}
 	else if (this->m_mode != QMakeCursorMode::MODE_BLIND) {
 		this->m_wordBuffer += qChar;
-	}
-	else if (this->m_currentBlock != this->m_rootBlock) {
-		cout << "Failed to close root block at " << pos->x << "x" << pos->y << endl;
-		return false;
 	}
 	else if (this->m_mode == QMakeCursorMode::MODE_BLIND) {
 		// Silently skip in blind mode (reading comment)

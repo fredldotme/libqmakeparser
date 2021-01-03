@@ -10,13 +10,20 @@ QMakeParser::QMakeParser(QObject* parent) : QObject(parent)
 		this, &QMakeParser::parseProject, Qt::DirectConnection);
 }
 
-void QMakeParser::setProjectFile(QString filePath)
+void QMakeParser::setProjectFile(const QString& filePath)
 {
 	if (this->m_filePath == filePath)
 		return;
 
 	this->m_filePath = filePath;
 	Q_EMIT filePathChanged();
+}
+
+void QMakeParser::feedValues(const QStringList& values)
+{
+	for (const QString& value : values) {
+		this->m_reader.feedValues(value);
+	}
 }
 
 void QMakeParser::parseProject()
@@ -31,7 +38,7 @@ void QMakeParser::parseProject()
 		return;
 	}
 
-	const bool loadSuccess = m_reader.loadFile(this->m_filePath);
+	const bool loadSuccess = this->m_reader.loadFile(this->m_filePath);
 	if (!loadSuccess) {
 		Q_EMIT parseError(QMakeParseError::ERROR_FILE_LOAD_FAILED);
 		return;

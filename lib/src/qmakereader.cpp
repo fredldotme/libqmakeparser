@@ -41,6 +41,12 @@ bool QMakeReader::loadFile(const QString& filePath)
 	return true;
 }
 
+void QMakeReader::feedValues(const QString& value)
+{
+	const std::vector<QString> valueLine = value.split(' ').toStdVector();
+	processLogicalLine(valueLine);
+}
+
 bool QMakeReader::checkBracketCount()
 {
 	if (this->m_openBrackets != this->m_closedBrackets) {
@@ -112,10 +118,15 @@ bool QMakeReader::isRequestedOs(const QString& value)
 
 void QMakeReader::processLogicalLine()
 {
+	processLogicalLine(this->m_currentBlock->logicalLine);
+}
+
+void QMakeReader::processLogicalLine(const std::vector<QString>& line)
+{
 	processWordBuffer();
 
 	bool isEmpty = true;
-	for (const QString& word : this->m_currentBlock->logicalLine) {
+	for (const QString& word : line) {
 		if (!word.trimmed().isEmpty()) {
 			isEmpty = false;
 			break;
@@ -123,7 +134,7 @@ void QMakeReader::processLogicalLine()
 	}
 
 	if (isEmpty) {
-		this->m_currentBlock->logicalLine.clear();
+		line.clear();
 		return;
 	}
 
@@ -131,8 +142,8 @@ void QMakeReader::processLogicalLine()
 
 	// cout << "Block address:" << this->m_currentBlock.get() << endl;
 	// cout << "Logical line begin:" << endl;
-	for (int i = 0; i < this->m_currentBlock->logicalLine.size(); i++) {
-		const QString& word = this->m_currentBlock->logicalLine[i];
+	for (int i = 0; i < line.size(); i++) {
+		const QString& word = line[i];
 
 		if (i == 0) {
 			// We only care about the first word in case it's an OS-specific block
@@ -148,7 +159,7 @@ void QMakeReader::processLogicalLine()
 			if (word == QString("=")) {
 				lineType = QMakeLineType::LINETYPE_VARIABLE_ASSIGNMENT;
 				// Clear existing values from the variable in question
-				const QString& key = this->m_currentBlock->logicalLine[0];
+				const QString& key = line[0];
 				this->m_variables[key].values.clear();
 			}
 			else if (word == QString("+=")) {
@@ -159,17 +170,17 @@ void QMakeReader::processLogicalLine()
 			}
 		}
 		else if (lineType != QMakeLineType::LINETYPE_NONE) {
-			const QString& key = this->m_currentBlock->logicalLine[0];
+			const QString& key = this->line[0];
 			QMakeVariable& var = this->m_variables[key];
 
 			switch (lineType) {
 			case QMakeLineType::LINETYPE_VARIABLE_ADDITION:
 			case QMakeLineType::LINETYPE_VARIABLE_ASSIGNMENT:
-				var.values.push_back(this->m_currentBlock->logicalLine[i]);
+				var.values.push_back(line[i]);
 				break;
 			case QMakeLineType::LINETYPE_VARIABLE_SUBTRACTION:
 				for (auto it = var.values.begin(); it != var.values.end();) {
-					if (*it == this->m_currentBlock->logicalLine[i]) {
+					if (*it == line[i]) {
 						it = var.values.erase(it);
 					} else {
 						++it;

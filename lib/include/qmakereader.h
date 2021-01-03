@@ -17,6 +17,7 @@ class QMakeReader : public QObject {
 public:
 	QMakeReader(QObject* parent = nullptr);
 	bool loadFile(const QString& filePath);
+	void feedValues(const QString& value);
 	std::map<QString, QMakeVariable> getVariables() {
 		return this->m_variables;
 	}
@@ -27,6 +28,7 @@ private:
 	bool handleCharacter(QMakeCursorPos*);
 	void processWordBuffer();
 	void processLogicalLine();
+	void processLogicalLine(const std::vector<QString>& line);
 	bool isListContains();
 	bool hasListValue();
 	bool hasOsSpecifier(const QString& value);

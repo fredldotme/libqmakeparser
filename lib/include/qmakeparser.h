@@ -18,7 +18,8 @@ class QMakeParser : public QObject {
 public:
 	QMakeParser(QObject* parent = nullptr);
 
-	void setProjectFile(QString filePath);
+	void setProjectFile(const QString& filePath);
+	void feedValues(const QStringList& values)
 	std::map<QString, QMakeVariable> getVariables();
 
 private:

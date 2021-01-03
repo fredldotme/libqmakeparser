@@ -5,7 +5,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	if (argc != 2) {
+	if (argc < 2) {
 		cerr << "No qmake file provided" << endl;
 		return 1;
 	}
@@ -14,10 +14,12 @@ int main(int argc, char** argv)
 	parser.setProjectFile(QString::fromUtf8(argv[1], strlen(argv[1])));
 
 	if (argc > 2) {
+		QStringList args;
 		for (int i = 2; i < argc; i++) {
 			const QString arg = QString::fromUtf8(argv[i], strlen(argv[i]));
-			parser.feedValues(arg);
+			args.append(arg);
 		}
+		parser.feedValues(args);
 	}
 
 	map<QString, QMakeVariable> variables = parser.getVariables();

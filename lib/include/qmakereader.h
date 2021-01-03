@@ -28,7 +28,7 @@ private:
 	bool handleCharacter(QMakeCursorPos*);
 	void processWordBuffer();
 	void processLogicalLine();
-	void processLogicalLine(const std::vector<QString>& line);
+	void processLogicalLine(std::vector<QString>& line);
 	bool isListContains();
 	bool hasListValue();
 	bool hasOsSpecifier(const QString& value);

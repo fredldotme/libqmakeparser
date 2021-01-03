@@ -121,7 +121,7 @@ void QMakeReader::processLogicalLine()
 	processLogicalLine(this->m_currentBlock->logicalLine);
 }
 
-void QMakeReader::processLogicalLine(const std::vector<QString>& line)
+void QMakeReader::processLogicalLine(std::vector<QString>& line)
 {
 	processWordBuffer();
 

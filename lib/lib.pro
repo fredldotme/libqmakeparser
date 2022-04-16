@@ -1,5 +1,6 @@
 TEMPLATE = lib
 TARGET = qmakeparser
+CONFIG += unversioned_libname unversioned_soname
 
 QT = core
 

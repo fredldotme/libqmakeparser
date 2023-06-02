@@ -10,7 +10,6 @@
 
 #include "qmaketypes.h"
 #include "qmakereader.h"
-#include "qmakeblock.h"
 
 class QMakeParser : public QObject {
 	Q_OBJECT
@@ -19,12 +18,14 @@ public:
 	QMakeParser(QObject* parent = nullptr);
 
 	void setProjectFile(const QString& filePath);
-	void feedValues(const QStringList& values);
+    QString projectFile();
+
+    void parseProject();
+    void feedValues(const QStringList& values);
 	std::map<QString, QMakeVariable> getVariables();
 
-private:
-	void parseProject();
 
+private:
 	QMakeReader m_reader;
 
 	QString m_filePath;
@@ -34,7 +35,6 @@ Q_SIGNALS:
 	void filePathChanged();
 	void parseError(QMakeParseError error);
 	void buildInstructionGenerated(QString contents);
-
 };
 
 #endif

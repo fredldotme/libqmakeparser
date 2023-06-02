@@ -19,6 +19,11 @@ void QMakeParser::setProjectFile(const QString& filePath)
 	Q_EMIT filePathChanged();
 }
 
+QString QMakeParser::projectFile()
+{
+    return this->m_filePath;
+}
+
 void QMakeParser::feedValues(const QStringList& values)
 {
 	for (const QString& value : values) {

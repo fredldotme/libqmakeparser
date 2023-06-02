@@ -44,8 +44,13 @@ bool QMakeReader::loadFile(const QString& filePath)
 
 void QMakeReader::feedValues(const QString& value)
 {
-	std::vector<QString> valueLine = value.split(' ').toVector().toStdVector();
-	processLogicalLine(valueLine);
+    const auto valueVector = value.split(' ').toVector();
+    std::vector<QString> logicalLine;
+
+    for (const auto& valueVectorEntry : valueVector) {
+        logicalLine.push_back(valueVectorEntry);
+    }
+    processLogicalLine(logicalLine);
 }
 
 bool QMakeReader::checkBracketCount()
